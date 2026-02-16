@@ -20,6 +20,16 @@
       border-color: var(--bs-primary) !important;
       background-color: var(--bs-primary-bg-subtle);
     }
+    .uploaded-file-display {
+      background: var(--bs-success-bg-subtle);
+      border: 1px solid var(--bs-success-border-subtle);
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--bs-emphasis-color);
+      word-break: break-word;
+    }
   </style>
 </head>
 <body class="bg-light">
@@ -37,6 +47,7 @@
                 <li>กรุณาเซ็นต์กำกับ "ใช้สำหรับสมัครประกันภัยการเดินทางกับบริษัท ยูนิไทย ทริป จำกัด เท่านั้น"</li>
                 <li>เซ็นต์ "สำเนาถูกต้อง"</li>
                 <li>ลงลายเซ็น</li>
+                <li>การตั้งชื่อไฟล์ คำนำหน้า_ชื่อ_นามสกุล_เลขบัตรประจำตัวประชาชน ภาษาไทยทั้งหมด เช่น นาย_อยู่เย็น_เป็นใคร_1234567890123</li>
               </ol>
             </div>
             <form id="upload-form">
@@ -70,8 +81,9 @@
         </div>
         <div class="modal-body">
           <p class="mb-2">Your file has been uploaded successfully.</p>
-          <p class="mb-0">File: <code id="uploaded-file-name">-</code></p>
-          <a id="uploaded-file-link" href="#" target="_blank" rel="noreferrer">Open file</a>
+          <p class="mb-2 text-secondary">Selected file name</p>
+          <div id="uploaded-file-name" class="uploaded-file-display mb-3">-</div>
+          <a id="uploaded-file-link" href="#" target="_blank" rel="noreferrer" class="fw-semibold">Open file</a>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
