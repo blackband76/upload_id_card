@@ -5,13 +5,21 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// Load env vars from .env if present
-dotenv.config();
+// Prefer Vercel-style local env file, then fall back to .env
+const localEnvResult = dotenv.config({ path: '.env.local' });
+if (localEnvResult.error) {
+  dotenv.config();
+}
 
 const app = express();
 const port = process.env.PORT || 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+
+if (!blobToken) {
+  console.warn('Missing BLOB_READ_WRITE_TOKEN. Uploads to Vercel Blob will fail until it is configured.');
+}
 
 // Configure multer to keep files in memory (buffer) and limit size
 const upload = multer({
@@ -34,6 +42,12 @@ app.get('/', (req, res) => {
 });
 
 app.post('/upload', upload.single('file'), async (req, res) => {
+  if (!blobToken) {
+    return res.status(500).json({
+      error: 'Server is missing BLOB_READ_WRITE_TOKEN. Set it in Vercel Project Settings > Environment Variables, then redeploy.',
+    });
+  }
+
   if (!req.file) {
     return res.status(400).json({ error: 'No file uploaded' });
   }
@@ -44,6 +58,7 @@ app.post('/upload', upload.single('file'), async (req, res) => {
     const blob = await put(`uploads/${Date.now()}-${originalname}`, buffer, {
       contentType: mimetype,
       access: 'public', // or 'private'
+      token: blobToken,
     });
 
     res.status(200).json({
