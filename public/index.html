@@ -58,6 +58,32 @@
     </div>
   </main>
 
+  <div class="modal fade" id="uploadSuccessModal" tabindex="-1" aria-labelledby="uploadSuccessModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title fs-5" id="uploadSuccessModalLabel">Upload Complete</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-2">Your file has been uploaded successfully.</p>
+          <p class="mb-0">File: <code id="uploaded-file-name">-</code></p>
+          <a id="uploaded-file-link" href="#" target="_blank" rel="noreferrer">Open file</a>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="upload-new-file">Upload New File</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+    crossorigin="anonymous"
+  ></script>
+
   <script>
     const form = document.getElementById('upload-form');
     const status = document.getElementById('status');
@@ -65,6 +91,11 @@
     const fileInput = document.getElementById('file');
     const dropZone = document.getElementById('drop-zone');
     const fileName = document.getElementById('file-name');
+    const uploadSuccessModalEl = document.getElementById('uploadSuccessModal');
+    const uploadedFileNameEl = document.getElementById('uploaded-file-name');
+    const uploadedFileLinkEl = document.getElementById('uploaded-file-link');
+    const uploadNewFileBtn = document.getElementById('upload-new-file');
+    const uploadSuccessModal = new bootstrap.Modal(uploadSuccessModalEl);
     const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
     const maxSize = 10 * 1024 * 1024;
     let selectedFile = null;
@@ -72,6 +103,13 @@
     function setSelectedFile(file) {
       selectedFile = file;
       fileName.textContent = `ไฟล์ที่เลือก: ${file.name}`;
+    }
+
+    function resetSelection() {
+      selectedFile = null;
+      fileInput.value = '';
+      fileName.textContent = 'ยังไม่ได้เลือกไฟล์';
+      status.innerHTML = '';
     }
 
     function validateFile(file) {
@@ -133,6 +171,11 @@
       status.innerHTML = '';
     });
 
+    uploadNewFileBtn.addEventListener('click', () => {
+      uploadSuccessModal.hide();
+      resetSelection();
+    });
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       status.innerHTML = '';
@@ -153,12 +196,10 @@
         if (!res.ok) throw new Error(json.error || 'Upload failed');
         const link = json.url || '#';
         const name = json.name || selectedFile.name;
-        status.innerHTML = `
-          <div class="alert alert-success py-2 mb-0">
-            Uploaded: <code>${name}</code><br>
-            <a href="${link}" target="_blank" rel="noreferrer">Open file</a>
-          </div>
-        `;
+        uploadedFileNameEl.textContent = name;
+        uploadedFileLinkEl.href = link;
+        uploadSuccessModal.show();
+        status.innerHTML = '';
       } catch (err) {
         status.innerHTML = `<div class="alert alert-danger py-2 mb-0">${err.message}</div>`;
       } finally {
