@@ -2,12 +2,16 @@ import express from 'express';
 import multer from 'multer';
 import { put } from '@vercel/blob';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 // Load env vars from .env if present
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Configure multer to keep files in memory (buffer) and limit size
 const upload = multer({
@@ -23,7 +27,11 @@ const upload = multer({
   },
 });
 
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 app.post('/upload', upload.single('file'), async (req, res) => {
   if (!req.file) {
@@ -50,6 +58,10 @@ app.post('/upload', upload.single('file'), async (req, res) => {
   }
 });
 
-app.listen(port, () => {
-  console.log(`Uploader listening on http://localhost:${port}`);
-});
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  app.listen(port, () => {
+    console.log(`Uploader listening on http://localhost:${port}`);
+  });
+}
+
+export default app;
