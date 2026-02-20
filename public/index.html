@@ -1,25 +1,24 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Blob Uploader</title>
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-    crossorigin="anonymous"
-  >
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
   <style>
     .drop-zone {
       border-style: dashed !important;
       cursor: pointer;
       transition: background-color 0.15s ease, border-color 0.15s ease;
     }
+
     .drop-zone.is-dragover {
       border-color: var(--bs-primary) !important;
       background-color: var(--bs-primary-bg-subtle);
     }
+
     .uploaded-file-display {
       background: var(--bs-success-bg-subtle);
       border: 1px solid var(--bs-success-border-subtle);
@@ -32,6 +31,7 @@
     }
   </style>
 </head>
+
 <body class="bg-light">
   <main class="container py-5">
     <div class="row justify-content-center">
@@ -47,7 +47,8 @@
                 <li>กรุณาเซ็นต์กำกับ "ใช้สำหรับสมัครประกันภัยการเดินทางกับบริษัท ยูนิไทย ทริป จำกัด เท่านั้น"</li>
                 <li>เซ็นต์ "สำเนาถูกต้อง"</li>
                 <li>ลงลายเซ็น</li>
-                <li>การตั้งชื่อไฟล์ คำนำหน้า_ชื่อ_นามสกุล_เลขบัตรประจำตัวประชาชน ภาษาไทยทั้งหมด เช่น นาย_อยู่เย็น_เป็นใคร_1234567890123</li>
+                <li>การตั้งชื่อไฟล์ คำนำหน้า_ชื่อ_นามสกุล_เลขบัตรประจำตัวประชาชน ภาษาไทยทั้งหมด เช่น
+                  นาย_อยู่เย็น_เป็นใคร_1234567890123</li>
               </ol>
             </div>
             <form id="upload-form">
@@ -60,9 +61,11 @@
                 </div>
                 <input id="file" class="form-control d-none" type="file" name="file" accept=".jpg,.jpeg,.png,.pdf" />
               </div>
-              <button id="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2" type="submit">
+              <button id="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2"
+                type="submit">
                 <span id="submit-label">Upload</span>
-                <span id="submit-spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                <span id="submit-spinner" class="spinner-border spinner-border-sm d-none" role="status"
+                  aria-hidden="true"></span>
               </button>
             </form>
             <div id="status" class="mt-3" role="status" aria-live="polite"></div>
@@ -72,7 +75,8 @@
     </div>
   </main>
 
-  <div class="modal fade" id="uploadSuccessModal" tabindex="-1" aria-labelledby="uploadSuccessModalLabel" aria-hidden="true">
+  <div class="modal fade" id="uploadSuccessModal" tabindex="-1" aria-labelledby="uploadSuccessModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
@@ -93,11 +97,9 @@
     </div>
   </div>
 
-  <script
-    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-    crossorigin="anonymous"
-  ></script>
+    crossorigin="anonymous"></script>
 
   <script>
     const form = document.getElementById('upload-form');
@@ -230,8 +232,18 @@
 
       try {
         const res = await fetch('/upload', { method: 'POST', body: data });
+        if (!res.ok) {
+          const contentType = res.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            const json = await res.json();
+            throw new Error(json.error || 'Upload failed');
+          }
+          if (res.status === 413) {
+            throw new Error('ไฟล์มีขนาดใหญ่เกินไป กรุณาลดขนาดไฟล์แล้วลองใหม่');
+          }
+          throw new Error(`Upload failed (${res.status})`);
+        }
         const json = await res.json();
-        if (!res.ok) throw new Error(json.error || 'Upload failed');
         const link = json.url || '#';
         const name = json.name || selectedFile.name;
         uploadedFileNameEl.textContent = name;
@@ -246,4 +258,5 @@
     });
   </script>
 </body>
+
 </html>
