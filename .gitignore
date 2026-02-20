@@ -1,3 +1,5 @@
 node_modules
 .env
 tmp-drive-key.json
+.vercel
+.env*.local
