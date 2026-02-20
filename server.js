@@ -24,7 +24,7 @@ if (!blobToken) {
 // Configure multer to keep files in memory (buffer) and limit size
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  limits: { fileSize: 4.5 * 1024 * 1024 }, // 4.5MB (Vercel Hobby plan limit)
   fileFilter: (req, file, cb) => {
     const allowed = ['image/jpeg', 'image/png', 'application/pdf'];
     const ext = path.extname(file.originalname).toLowerCase();
