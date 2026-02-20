@@ -37,8 +37,28 @@ function toBlobSafeFilename(originalname) {
   return `${finalBase}${safeExt}`;
 }
 
+function recoverOriginalFilename(filename) {
+  const candidates = [
+    filename,
+    filename.normalize('NFC'),
+    Buffer.from(filename, 'latin1').toString('utf8'),
+    Buffer.from(filename, 'latin1').toString('utf8').normalize('NFC'),
+  ];
+
+  for (const value of candidates) {
+    const cleaned = value.trim();
+    const { name } = path.parse(cleaned);
+    if (uploadNamePattern.test(name)) {
+      return cleaned;
+    }
+  }
+
+  return filename;
+}
+
 function hasValidUploadFilename(originalname) {
-  const { name } = path.parse(originalname);
+  const recovered = recoverOriginalFilename(originalname);
+  const { name } = path.parse(recovered);
   return uploadNamePattern.test(name);
 }
 
@@ -82,7 +102,8 @@ app.post('/upload', upload.single('file'), async (req, res) => {
   }
 
   try {
-    const { originalname, mimetype, buffer } = req.file;
+    const originalname = recoverOriginalFilename(req.file.originalname);
+    const { mimetype, buffer } = req.file;
     const safeName = toBlobSafeFilename(originalname);
     const blobPath = `uploads/${Date.now()}-${safeName}`;
 
