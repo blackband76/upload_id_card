@@ -133,7 +133,9 @@
     }
 
     function validateFile(file) {
-      if (!allowedTypes.includes(file.type)) {
+      const allowedExtensions = ['.jpg', '.jpeg', '.png', '.pdf'];
+      const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+      if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(ext)) {
         return 'Only JPG, PNG, or PDF files are allowed';
       }
       if (file.size > maxSize) {
