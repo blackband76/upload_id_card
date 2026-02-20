@@ -16,9 +16,30 @@ const port = process.env.PORT || 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+const uploadNamePattern = /^(นาย|นาง|นางสาว)_[ก-๙]+_[ก-๙]+_\d{13}$/;
 
 if (!blobToken) {
   console.warn('Missing BLOB_READ_WRITE_TOKEN. Uploads to Vercel Blob will fail until it is configured.');
+}
+
+function toBlobSafeFilename(originalname) {
+  const { name, ext } = path.parse(originalname);
+  const safeBase = name
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9_-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .toLowerCase();
+
+  const finalBase = safeBase || 'file';
+  const safeExt = ext.toLowerCase().replace(/[^a-z0-9.]/g, '') || '';
+  return `${finalBase}${safeExt}`;
+}
+
+function hasValidUploadFilename(originalname) {
+  const { name } = path.parse(originalname);
+  return uploadNamePattern.test(name);
 }
 
 // Configure multer to keep files in memory (buffer) and limit size
@@ -54,16 +75,26 @@ app.post('/upload', upload.single('file'), async (req, res) => {
     return res.status(400).json({ error: 'No file uploaded' });
   }
 
+  if (!hasValidUploadFilename(req.file.originalname)) {
+    return res.status(400).json({
+      error: 'ชื่อไฟล์ไม่ถูกต้อง ต้องเป็นรูปแบบ คำนำหน้า_ชื่อ_นามสกุล_เลขบัตร13หลัก เช่น นาย_อยู่เย็น_เป็นใคร_1234567890123',
+    });
+  }
+
   try {
     const { originalname, mimetype, buffer } = req.file;
+    const safeName = toBlobSafeFilename(originalname);
+    const blobPath = `uploads/${Date.now()}-${safeName}`;
 
-    const blob = await put(`uploads/${Date.now()}-${originalname}`, buffer, {
+    const blob = await put(blobPath, buffer, {
       contentType: mimetype,
       access: 'public', // or 'private'
       token: blobToken,
     });
 
     res.status(200).json({
+      name: safeName,
+      originalName: originalname,
       url: blob.url,
       pathname: blob.pathname,
       contentType: blob.contentType,
